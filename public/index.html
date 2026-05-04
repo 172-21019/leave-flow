@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>LeaveFlow — Employee Leave Management</title>
+<link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;500;600;700&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --bg:#f4f6fb;--surface:#ffffff;--border:#e2e8f0;
+  --primary:#4f46e5;--primary-light:#eef2ff;--primary-dark:#3730a3;
+  --green:#10b981;--green-light:#d1fae5;
+  --red:#ef4444;--red-light:#fee2e2;
+  --amber:#f59e0b;--amber-light:#fef3c7;
+  --blue:#3b82f6;--blue-light:#dbeafe;
+  --text:#1e293b;--muted:#64748b;--hint:#94a3b8;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+body{background:var(--bg);color:var(--text);font-family:'Outfit',sans-serif;min-height:100vh;}
+
+/* Login Screen */
+#login-screen{min-height:100vh;display:flex;align-items:center;justify-content:center;background:linear-gradient(135deg,#4f46e5 0%,#7c3aed 100%);}
+.login-card{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:420px;box-shadow:0 20px 60px rgba(0,0,0,.15);}
+.login-logo{font-size:1.8rem;font-weight:700;color:var(--primary);margin-bottom:6px;}
+.login-logo span{color:#7c3aed;}
+.login-sub{font-size:0.85rem;color:var(--muted);margin-bottom:28px;}
+.login-label{font-size:0.8rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px;display:block;}
+.login-select{width:100%;padding:12px 16px;border:1.5px solid var(--border);border-radius:10px;font-size:0.95rem;font-family:'Outfit',sans-serif;color:var(--text);background:#fff;outline:none;margin-bottom:20px;cursor:pointer;}
+.login-select:focus{border-color:var(--primary);}
+.login-btn{width:100%;background:var(--primary);color:#fff;border:none;border-radius:10px;padding:14px;font-size:1rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .2s;}
+.login-btn:hover{background:var(--primary-dark);}
+.role-pills{display:flex;gap:10px;margin-bottom:20px;}
+.role-pill{flex:1;padding:10px;border:2px solid var(--border);border-radius:10px;text-align:center;cursor:pointer;font-size:0.85rem;font-weight:600;transition:all .2s;color:var(--muted);}
+.role-pill.active{border-color:var(--primary);background:var(--primary-light);color:var(--primary);}
+
+/* App Layout */
+#app{display:none;min-height:100vh;}
+header{background:var(--surface);border-bottom:1px solid var(--border);padding:16px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.app-logo{font-size:1.3rem;font-weight:700;color:var(--primary);}
+.app-logo span{color:#7c3aed;}
+.user-info{display:flex;align-items:center;gap:12px;}
+.avatar{width:38px;height:38px;border-radius:50%;background:var(--primary);color:#fff;display:flex;align-items:center;justify-content:center;font-weight:700;font-size:0.85rem;}
+.user-name{font-weight:600;font-size:0.9rem;}
+.user-role{font-size:0.75rem;color:var(--muted);font-family:'DM Mono',monospace;}
+.btn-logout{background:none;border:1.5px solid var(--border);border-radius:8px;padding:7px 14px;font-size:0.82rem;cursor:pointer;color:var(--muted);font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-logout:hover{border-color:var(--red);color:var(--red);}
+
+.main{display:flex;}
+.sidebar{width:220px;background:var(--surface);border-right:1px solid var(--border);min-height:calc(100vh - 65px);padding:20px 12px;}
+.nav-item{display:flex;align-items:center;gap:10px;padding:10px 14px;border-radius:10px;cursor:pointer;font-size:0.9rem;font-weight:500;color:var(--muted);margin-bottom:4px;transition:all .2s;}
+.nav-item:hover{background:var(--bg);color:var(--text);}
+.nav-item.active{background:var(--primary-light);color:var(--primary);}
+.nav-icon{font-size:1rem;width:20px;text-align:center;}
+
+.content{flex:1;padding:28px;}
+
+/* Stats */
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:28px;}
+.stat{background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:20px;position:relative;overflow:hidden;}
+.stat::after{content:'';position:absolute;top:0;left:0;right:0;height:3px;border-radius:3px 3px 0 0;}
+.stat.total::after{background:var(--primary);}
+.stat.pending::after{background:var(--amber);}
+.stat.approved::after{background:var(--green);}
+.stat.rejected::after{background:var(--red);}
+.stat-label{font-size:0.72rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--muted);margin-bottom:8px;}
+.stat-val{font-size:2rem;font-weight:700;}
+.stat.total .stat-val{color:var(--primary);}
+.stat.pending .stat-val{color:var(--amber);}
+.stat.approved .stat-val{color:var(--green);}
+.stat.rejected .stat-val{color:var(--red);}
+
+/* Balance cards */
+.balance-section{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:28px;}
+.balance-card{background:var(--surface);border:1px solid var(--border);border-radius:12px;padding:18px;}
+.balance-type{font-size:0.78rem;font-weight:600;text-transform:uppercase;letter-spacing:.5px;color:var(--muted);margin-bottom:6px;}
+.balance-days{font-size:1.8rem;font-weight:700;color:var(--text);}
+.balance-sub{font-size:0.75rem;color:var(--hint);margin-top:2px;}
+
+/* Section title */
+.section-title{font-size:1rem;font-weight:700;color:var(--text);margin-bottom:16px;display:flex;align-items:center;justify-content:space-between;}
+.btn-primary{background:var(--primary);color:#fff;border:none;border-radius:8px;padding:9px 18px;font-size:0.85rem;font-weight:600;cursor:pointer;font-family:'Outfit',sans-serif;transition:background .2s;}
+.btn-primary:hover{background:var(--primary-dark);}
+
+/* Table */
+.table-wrap{background:var(--surface);border:1px solid var(--border);border-radius:14px;overflow:hidden;}
+table{width:100%;border-collapse:collapse;}
+th{background:#f8fafc;padding:12px 18px;text-align:left;font-size:0.72rem;font-family:'DM Mono',monospace;text-transform:uppercase;letter-spacing:1px;color:var(--muted);border-bottom:1px solid var(--border);}
+td{padding:14px 18px;border-bottom:1px solid var(--border);font-size:0.875rem;vertical-align:middle;}
+tr:last-child td{border-bottom:none;}
+tr:hover td{background:#fafbff;}
+
+/* Badges */
+.badge{display:inline-block;padding:3px 10px;border-radius:20px;font-size:0.72rem;font-weight:600;text-transform:uppercase;letter-spacing:.3px;}
+.badge.pending{background:var(--amber-light);color:#92400e;}
+.badge.approved{background:var(--green-light);color:#065f46;}
+.badge.rejected{background:var(--red-light);color:#991b1b;}
+.badge.cancelled{background:#f1f5f9;color:var(--muted);}
+.badge.casual{background:var(--blue-light);color:#1e40af;}
+.badge.sick{background:#fce7f3;color:#9d174d;}
+.badge.earned{background:#f0fdf4;color:#166534;}
+
+/* Action buttons */
+.btn-sm{padding:5px 12px;border-radius:6px;font-size:0.75rem;font-weight:600;cursor:pointer;border:none;font-family:'Outfit',sans-serif;transition:all .2s;}
+.btn-approve{background:var(--green-light);color:#065f46;}
+.btn-approve:hover{background:#a7f3d0;}
+.btn-reject{background:var(--red-light);color:#991b1b;}
+.btn-reject:hover{background:#fecaca;}
+.btn-cancel{background:#f1f5f9;color:var(--muted);}
+.btn-cancel:hover{background:#e2e8f0;}
+
+/* Modal */
+.modal-bg{display:none;position:fixed;inset:0;background:rgba(15,23,42,.5);z-index:200;align-items:center;justify-content:center;backdrop-filter:blur(3px);}
+.modal-bg.open{display:flex;}
+.modal{background:#fff;border-radius:16px;padding:32px;width:100%;max-width:500px;}
+.modal h2{font-size:1.1rem;font-weight:700;margin-bottom:22px;}
+.form-group{margin-bottom:16px;}
+label{display:block;font-size:0.78rem;font-weight:600;color:var(--muted);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px;}
+input,select.fsel,textarea{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:8px;font-size:0.88rem;font-family:'Outfit',sans-serif;color:var(--text);outline:none;transition:border-color .2s;background:#fff;}
+input:focus,select.fsel:focus,textarea:focus{border-color:var(--primary);}
+textarea{min-height:80px;resize:vertical;}
+.form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;}
+.modal-actions{display:flex;gap:10px;margin-top:22px;}
+.btn-sub{flex:1;background:var(--primary);color:#fff;border:none;border-radius:8px;padding:12px;font-weight:700;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.9rem;}
+.btn-sub:hover{background:var(--primary-dark);}
+.btn-can{flex:1;background:none;border:1.5px solid var(--border);border-radius:8px;padding:12px;cursor:pointer;font-family:'Outfit',sans-serif;font-size:0.9rem;color:var(--muted);}
+.empty{text-align:center;padding:50px;color:var(--hint);font-size:0.85rem;}
+.toast{position:fixed;bottom:24px;right:24px;background:#1e293b;color:#fff;border-radius:10px;padding:12px 20px;font-size:0.85rem;opacity:0;transform:translateY(10px);transition:all .3s;pointer-events:none;z-index:999;}
+.toast.show{opacity:1;transform:translateY(0);}
+.page{display:none;}
+.page.active{display:block;}
+.comment-input{width:100%;padding:8px 12px;border:1.5px solid var(--border);border-radius:8px;font-size:0.85rem;font-family:'Outfit',sans-serif;outline:none;margin-top:8px;}
+</style>
+</head>
+<body>
+
+<!-- Login -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">Leave<span>Flow</span></div>
+    <div class="login-sub">Employee Leave Management System</div>
+    <div style="margin-bottom:14px;">
+      <span class="login-label">Select your role</span>
+      <div class="role-pills">
+        <div class="role-pill active" id="pill-emp" onclick="selectRole('employee')">👤 Employee</div>
+        <div class="role-pill" id="pill-mgr" onclick="selectRole('manager')">👔 Manager</div>
+      </div>
+    </div>
+    <span class="login-label">Select your account</span>
+    <select class="login-select" id="login-user"></select>
+    <button class="login-btn" onclick="doLogin()">Login →</button>
+  </div>
+</div>
+
+<!-- App -->
+<div id="app">
+  <header>
+    <div class="app-logo">Leave<span>Flow</span></div>
+    <div class="user-info">
+      <div class="avatar" id="h-avatar"></div>
+      <div>
+        <div class="user-name" id="h-name"></div>
+        <div class="user-role" id="h-role"></div>
+      </div>
+      <button class="btn-logout" onclick="logout()">Logout</button>
+    </div>
+  </header>
+  <div class="main">
+    <div class="sidebar">
+      <div class="nav-item active" onclick="showPage('dashboard')" id="nav-dashboard">
+        <span class="nav-icon">📊</span> Dashboard
+      </div>
+      <div class="nav-item" onclick="showPage('leaves')" id="nav-leaves">
+        <span class="nav-icon">📋</span> <span id="nav-leaves-label">My Leaves</span>
+      </div>
+      <div class="nav-item emp-only" onclick="showPage('apply')" id="nav-apply" style="display:none">
+        <span class="nav-icon">➕</span> Apply Leave
+      </div>
+      <div class="nav-item mgr-only" onclick="showPage('pending')" id="nav-pending" style="display:none">
+        <span class="nav-icon">⏳</span> Pending Approvals
+      </div>
+      <div class="nav-item" onclick="showPage('history')" id="nav-history">
+        <span class="nav-icon">🕐</span> History
+      </div>
+    </div>
+
+    <div class="content">
+      <!-- Dashboard -->
+      <div class="page active" id="page-dashboard">
+        <div class="stats">
+          <div class="stat total"><div class="stat-label">Total Leaves</div><div class="stat-val" id="s-total">0</div></div>
+          <div class="stat pending"><div class="stat-label">Pending</div><div class="stat-val" id="s-pending">0</div></div>
+          <div class="stat approved"><div class="stat-label">Approved</div><div class="stat-val" id="s-approved">0</div></div>
+          <div class="stat rejected"><div class="stat-label">Rejected</div><div class="stat-val" id="s-rejected">0</div></div>
+        </div>
+        <div class="balance-section emp-only" id="balance-section">
+          <div class="balance-card">
+            <div class="balance-type">Casual Leave</div>
+            <div class="balance-days" id="b-casual">-</div>
+            <div class="balance-sub">days remaining</div>
+          </div>
+          <div class="balance-card">
+            <div class="balance-type">Sick Leave</div>
+            <div class="balance-days" id="b-sick">-</div>
+            <div class="balance-sub">days remaining</div>
+          </div>
+          <div class="balance-card">
+            <div class="balance-type">Earned Leave</div>
+            <div class="balance-days" id="b-earned">-</div>
+            <div class="balance-sub">days remaining</div>
+          </div>
+        </div>
+        <div class="section-title">Recent Activity</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Type</th><th>From</th><th>To</th><th>Days</th><th>Status</th><th id="th-emp" style="display:none">Employee</th>
+            </tr></thead>
+            <tbody id="dash-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- My Leaves / All Leaves -->
+      <div class="page" id="page-leaves">
+        <div class="section-title">
+          <span id="leaves-title">My Leaves</span>
+          <button class="btn-primary emp-only" id="apply-btn" onclick="showPage('apply')" style="display:none">+ Apply Leave</button>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Type</th><th>From → To</th><th>Days</th><th>Reason</th><th>Status</th><th>Action</th>
+            </tr></thead>
+            <tbody id="leaves-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Apply Leave -->
+      <div class="page emp-only" id="page-apply">
+        <div class="section-title">Apply for Leave</div>
+        <div style="background:var(--surface);border:1px solid var(--border);border-radius:14px;padding:28px;max-width:560px;">
+          <div class="form-group">
+            <label>Leave Type</label>
+            <select class="fsel" id="a-type">
+              <option value="casual">Casual Leave</option>
+              <option value="sick">Sick Leave</option>
+              <option value="earned">Earned Leave</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label>From Date</label>
+              <input type="date" id="a-from"/>
+            </div>
+            <div class="form-group">
+              <label>To Date</label>
+              <input type="date" id="a-to"/>
+            </div>
+          </div>
+          <div class="form-group">
+            <label>Reason</label>
+            <textarea id="a-reason" placeholder="Reason for leave..."></textarea>
+          </div>
+          <div style="background:var(--primary-light);border-radius:8px;padding:12px 16px;margin-bottom:16px;font-size:0.85rem;color:var(--primary);">
+            📅 Duration: <strong id="a-days">0 days</strong>
+          </div>
+          <button class="btn-primary" onclick="applyLeave()" style="width:100%;padding:13px;">Submit Leave Request</button>
+        </div>
+      </div>
+
+      <!-- Pending Approvals (Manager) -->
+      <div class="page mgr-only" id="page-pending">
+        <div class="section-title">Pending Approvals</div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th>Employee</th><th>Dept</th><th>Type</th><th>From → To</th><th>Days</th><th>Reason</th><th>Actions</th>
+            </tr></thead>
+            <tbody id="pending-body"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- History -->
+      <div class="page" id="page-history">
+        <div class="section-title">Leave History</div>
+        <div style="display:flex;gap:10px;margin-bottom:16px;">
+          <select class="fsel" id="filter-status" onchange="loadHistory()" style="width:160px;">
+            <option value="">All Status</option>
+            <option value="approved">Approved</option>
+            <option value="rejected">Rejected</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+          <select class="fsel" id="filter-type" onchange="loadHistory()" style="width:160px;">
+            <option value="">All Types</option>
+            <option value="casual">Casual</option>
+            <option value="sick">Sick</option>
+            <option value="earned">Earned</option>
+          </select>
+        </div>
+        <div class="table-wrap">
+          <table>
+            <thead><tr>
+              <th>ID</th><th id="hth-emp">Employee</th><th>Type</th><th>From → To</th><th>Days</th><th>Reason</th><th>Status</th><th>Comment</th>
+            </tr></thead>
+            <tbody id="history-body"></tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Action Modal (Manager) -->
+<div class="modal-bg" id="action-modal">
+  <div class="modal">
+    <h2 id="action-title">Approve Leave</h2>
+    <p style="font-size:0.88rem;color:var(--muted);margin-bottom:16px;" id="action-desc"></p>
+    <label>Comment (optional)</label>
+    <input class="comment-input" id="action-comment" placeholder="Add a comment..."/>
+    <div class="modal-actions">
+      <button class="btn-can" onclick="closeActionModal()">Cancel</button>
+      <button class="btn-sub" id="action-confirm-btn">Confirm</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+let currentUser = null;
+let allEmployees = [];
+let selectedRole = 'employee';
+let pendingAction = null;
+
+// ── Login ─────────────────────────────────────────────────────
+async function init() {
+  const res = await fetch('/api/employees');
+  allEmployees = await res.json();
+  populateLoginSelect();
+}
+
+function selectRole(role) {
+  selectedRole = role;
+  document.getElementById('pill-emp').classList.toggle('active', role==='employee');
+  document.getElementById('pill-mgr').classList.toggle('active', role==='manager');
+  populateLoginSelect();
+}
+
+function populateLoginSelect() {
+  const sel = document.getElementById('login-user');
+  const filtered = allEmployees.filter(e => e.role === selectedRole);
+  sel.innerHTML = filtered.map(e => `<option value="${e.id}">${e.name} — ${e.department}</option>`).join('');
+}
+
+function doLogin() {
+  const id = document.getElementById('login-user').value;
+  currentUser = allEmployees.find(e => e.id === id);
+  if (!currentUser) return;
+  document.getElementById('login-screen').style.display = 'none';
+  document.getElementById('app').style.display = 'block';
+  setupUI();
+  showPage('dashboard');
+}
+
+function logout() {
+  currentUser = null;
+  document.getElementById('login-screen').style.display = 'flex';
+  document.getElementById('app').style.display = 'none';
+}
+
+function setupUI() {
+  const u = currentUser;
+  document.getElementById('h-avatar').textContent = u.name.split(' ').map(w=>w[0]).join('').slice(0,2);
+  document.getElementById('h-name').textContent = u.name;
+  document.getElementById('h-role').textContent = u.role.toUpperCase() + ' · ' + u.department;
+
+  const isEmp = u.role === 'employee';
+  document.querySelectorAll('.emp-only').forEach(el => el.style.display = isEmp ? '' : 'none');
+  document.querySelectorAll('.mgr-only').forEach(el => el.style.display = isEmp ? 'none' : '');
+  document.getElementById('nav-leaves-label').textContent = isEmp ? 'My Leaves' : 'All Leaves';
+  document.getElementById('leaves-title').textContent = isEmp ? 'My Leaves' : 'All Leaves';
+  if (!isEmp) document.getElementById('hth-emp').style.display = '';
+  else document.getElementById('hth-emp').style.display = 'none';
+}
+
+// ── Pages ─────────────────────────────────────────────────────
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  const nav = document.getElementById('nav-'+name);
+  if (nav) nav.classList.add('active');
+
+  if (name==='dashboard') loadDashboard();
+  else if (name==='leaves') loadLeaves();
+  else if (name==='pending') loadPending();
+  else if (name==='history') loadHistory();
+}
+
+// ── Dashboard ─────────────────────────────────────────────────
+async function loadDashboard() {
+  const u = currentUser;
+  const r = await fetch(`/api/stats?role=${u.role}&id=${u.id}`);
+  const s = await r.json();
+  document.getElementById('s-total').textContent   = s.total;
+  document.getElementById('s-pending').textContent  = s.pending;
+  document.getElementById('s-approved').textContent = s.approved;
+  document.getElementById('s-rejected').textContent = s.rejected;
+
+  if (u.role === 'employee') {
+    document.getElementById('b-casual').textContent = u.leaveBalance.casual;
+    document.getElementById('b-sick').textContent   = u.leaveBalance.sick;
+    document.getElementById('b-earned').textContent = u.leaveBalance.earned;
+  }
+
+  const url = u.role === 'manager'
+    ? `/api/leaves?role=manager&managerId=${u.id}`
+    : `/api/leaves?employeeId=${u.id}`;
+  const lr = await fetch(url);
+  const leaves = await lr.json();
+  const recent = leaves.slice(-5).reverse();
+
+  const mgr = u.role === 'manager';
+  if (mgr) document.getElementById('th-emp').style.display = '';
+  else document.getElementById('th-emp').style.display = 'none';
+
+  document.getElementById('dash-body').innerHTML = recent.length
+    ? recent.map(l => `<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted)">${l.id}</td>
+        <td><span class="badge ${l.type}">${l.type}</span></td>
+        <td>${l.fromDate}</td><td>${l.toDate}</td>
+        <td style="font-weight:600">${l.days}</td>
+        <td><span class="badge ${l.status}">${l.status}</span></td>
+        ${mgr ? `<td>${l.employeeName}</td>` : ''}
+      </tr>`).join('')
+    : `<tr><td colspan="7"><div class="empty">No recent activity</div></td></tr>`;
+}
+
+// ── My/All Leaves ─────────────────────────────────────────────
+async function loadLeaves() {
+  const u = currentUser;
+  const url = u.role === 'manager'
+    ? `/api/leaves?role=manager&managerId=${u.id}`
+    : `/api/leaves?employeeId=${u.id}`;
+  const res = await fetch(url);
+  const leaves = await res.json();
+  const isEmp = u.role === 'employee';
+
+  document.getElementById('leaves-body').innerHTML = leaves.length
+    ? leaves.map(l => `<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted)">${l.id}</td>
+        <td><span class="badge ${l.type}">${l.type}</span></td>
+        <td>${l.fromDate} → ${l.toDate}</td>
+        <td style="font-weight:600">${l.days}</td>
+        <td style="max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.reason}</td>
+        <td><span class="badge ${l.status}">${l.status}</span></td>
+        <td>${isEmp && l.status==='pending'
+          ? `<button class="btn-sm btn-cancel" onclick="cancelLeave('${l.id}')">Cancel</button>`
+          : '—'}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="7"><div class="empty">No leaves found</div></td></tr>`;
+}
+
+// ── Apply Leave ───────────────────────────────────────────────
+document.addEventListener('input', () => {
+  const f = document.getElementById('a-from')?.value;
+  const t = document.getElementById('a-to')?.value;
+  if (f && t) {
+    const days = Math.max(0, Math.floor((new Date(t)-new Date(f))/86400000)+1);
+    document.getElementById('a-days').textContent = days + ' day' + (days!==1?'s':'');
+  }
+});
+
+async function applyLeave() {
+  const type    = document.getElementById('a-type').value;
+  const fromDate= document.getElementById('a-from').value;
+  const toDate  = document.getElementById('a-to').value;
+  const reason  = document.getElementById('a-reason').value.trim();
+  if (!fromDate||!toDate||!reason) { toast('Please fill all fields!', true); return; }
+  if (new Date(toDate)<new Date(fromDate)) { toast('To date must be after From date!', true); return; }
+
+  const res = await fetch('/api/leaves', {
+    method:'POST', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ employeeId: currentUser.id, type, fromDate, toDate, reason })
+  });
+  const data = await res.json();
+  if (!res.ok) { toast(data.error, true); return; }
+
+  // Update local balance
+  const days = Math.floor((new Date(toDate)-new Date(fromDate))/86400000)+1;
+  toast(`Leave applied! ${days} day(s) pending approval.`);
+  document.getElementById('a-from').value='';
+  document.getElementById('a-to').value='';
+  document.getElementById('a-reason').value='';
+  document.getElementById('a-days').textContent='0 days';
+  showPage('leaves');
+}
+
+async function cancelLeave(id) {
+  if (!confirm('Cancel this leave request?')) return;
+  const res = await fetch(`/api/leaves/${id}/cancel`, { method:'PUT' });
+  if (res.ok) { toast('Leave cancelled'); loadLeaves(); }
+}
+
+// ── Pending (Manager) ─────────────────────────────────────────
+async function loadPending() {
+  const res = await fetch(`/api/leaves?role=manager&managerId=${currentUser.id}&status=pending`);
+  const leaves = await res.json();
+  document.getElementById('pending-body').innerHTML = leaves.length
+    ? leaves.map(l => `<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted)">${l.id}</td>
+        <td style="font-weight:600">${l.employeeName}</td>
+        <td>${l.department}</td>
+        <td><span class="badge ${l.type}">${l.type}</span></td>
+        <td>${l.fromDate} → ${l.toDate}</td>
+        <td style="font-weight:600">${l.days}</td>
+        <td style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${l.reason}</td>
+        <td>
+          <div style="display:flex;gap:6px;">
+            <button class="btn-sm btn-approve" onclick="openAction('${l.id}','approve','${l.employeeName}')">Approve</button>
+            <button class="btn-sm btn-reject"  onclick="openAction('${l.id}','reject','${l.employeeName}')">Reject</button>
+          </div>
+        </td>
+      </tr>`).join('')
+    : `<tr><td colspan="8"><div class="empty">No pending approvals</div></td></tr>`;
+}
+
+function openAction(leaveId, action, name) {
+  pendingAction = { leaveId, action };
+  const isApp = action === 'approve';
+  document.getElementById('action-title').textContent = (isApp?'Approve':'Reject') + ' Leave';
+  document.getElementById('action-desc').textContent  = `${isApp?'Approving':'Rejecting'} leave request for ${name}`;
+  document.getElementById('action-confirm-btn').textContent = isApp ? 'Approve' : 'Reject';
+  document.getElementById('action-confirm-btn').style.background = isApp ? 'var(--green)' : 'var(--red)';
+  document.getElementById('action-comment').value = '';
+  document.getElementById('action-modal').classList.add('open');
+}
+
+function closeActionModal() {
+  document.getElementById('action-modal').classList.remove('open');
+  pendingAction = null;
+}
+
+document.getElementById('action-confirm-btn').addEventListener('click', async () => {
+  if (!pendingAction) return;
+  const comment = document.getElementById('action-comment').value;
+  const res = await fetch(`/api/leaves/${pendingAction.leaveId}/action`, {
+    method:'PUT', headers:{'Content-Type':'application/json'},
+    body: JSON.stringify({ action: pendingAction.action, comment })
+  });
+  if (res.ok) {
+    toast(`Leave ${pendingAction.action}d successfully!`);
+    closeActionModal();
+    loadPending();
+  }
+});
+
+// ── History ───────────────────────────────────────────────────
+async function loadHistory() {
+  const u = currentUser;
+  const status = document.getElementById('filter-status').value;
+  const type   = document.getElementById('filter-type').value;
+  let url = u.role==='manager'
+    ? `/api/leaves?role=manager&managerId=${u.id}`
+    : `/api/leaves?employeeId=${u.id}`;
+  if (status) url += `&status=${status}`;
+  const res = await fetch(url);
+  let leaves = await res.json();
+  if (type) leaves = leaves.filter(l=>l.type===type);
+  const isMgr = u.role==='manager';
+
+  document.getElementById('history-body').innerHTML = leaves.length
+    ? leaves.map(l=>`<tr>
+        <td style="font-family:'DM Mono',monospace;font-size:0.78rem;color:var(--muted)">${l.id}</td>
+        ${isMgr?`<td style="font-weight:600">${l.employeeName}</td>`:''}
+        <td><span class="badge ${l.type}">${l.type}</span></td>
+        <td>${l.fromDate} → ${l.toDate}</td>
+        <td style="font-weight:600">${l.days}</td>
+        <td>${l.reason}</td>
+        <td><span class="badge ${l.status}">${l.status}</span></td>
+        <td style="color:var(--muted);font-size:0.8rem">${l.comment||'—'}</td>
+      </tr>`).join('')
+    : `<tr><td colspan="8"><div class="empty">No history found</div></td></tr>`;
+}
+
+// ── Toast ─────────────────────────────────────────────────────
+function toast(msg, err=false) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.style.background = err ? 'var(--red)' : '#1e293b';
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'), 2800);
+}
+
+document.getElementById('action-modal').addEventListener('click', e => {
+  if (e.target===document.getElementById('action-modal')) closeActionModal();
+});
+
+init();
+</script>
+</body>
+</html>
