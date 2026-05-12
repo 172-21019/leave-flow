@@ -99,5 +99,11 @@ app.get('/api/stats', (req, res) => {
 app.get('/health', (req, res) => res.json({ status: 'OK', uptime: process.uptime() }));
 
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => console.log(`Leave Manager running on port ${PORT}`));
+
+if (require.main === module) {
+  app.listen(PORT, () =>
+    console.log(`Leave Manager running on port ${PORT}`)
+  );
+}
+
 module.exports = app;
